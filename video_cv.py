@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 import frameTimestamp
+from enum import Enum
+import csv
 
 
 def string_to_milliseconds(string):
@@ -15,13 +17,6 @@ def getFrame(frame_nr):
     video.set(cv2.CAP_PROP_POS_FRAMES, frame_nr)
 
 
-plt.axis([0, 10, 0, 1])
-
-for i in range(10):
-    y = np.random.random()
-    plt.scatter(i, y)
-
-plt.show()
 walking = []
 running = []
 videoName = "Resources/vid.mp4"
@@ -42,7 +37,8 @@ cv2.createTrackbar("Frame", "Video", 0, nr_of_frames, getFrame)
 paused = False
 timestamps = frameTimestamp.with_pyav(videoName)
 start = 0
-while True:
+playing = True
+while playing:
     ret, frame = video.read()  # read a single frame
     if not ret:  # this mean it could not read the frame
         print("Could not read the frame")
@@ -87,6 +83,7 @@ while True:
             else:
                 print("Running phase marked")
         if waitKey == ord('q'):
+            playing = False
             break
         if waitKey == ord('m'):
             print("Enter the mark (01-01-2023 00:00:00.000):")
@@ -111,4 +108,22 @@ for run in running:
 
 print(walk_datetime)
 print(run_datetime)
+
+
+def split_data(data, state):
+    csv_data = []
+    for j in range(0, len(data), 2):
+        odd_value = data[j]
+        even_value = data[j + 1] if j + 1 < len(data) else ''  # Handle the case where there's no even value
+        csv_data.append([odd_value, even_value, state])
+    return csv_data
+
+
+csv_filename = 'output.csv'
+
+with open(csv_filename, 'w', newline='') as csvfile:
+    csv_writer = csv.writer(csvfile)
+    csv_writer.writerows(split_data(walk_datetime, 'walking'))
+    csv_writer.writerows(split_data(run_datetime, 'running'))
+
 # %%
