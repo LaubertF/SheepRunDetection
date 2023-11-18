@@ -36,7 +36,7 @@ def detect_outliers(data, c):
 
     # Identify outliers
     for i in range(len(data)):
-        if np.abs(data[i] - mean[i]) > c * std_dev[i]:
+        if data[i] - mean[i] > c * std_dev[i]:
             outliers[i] = 1
 
     return outliers
@@ -61,3 +61,5 @@ def post_processing(signal, window_length_ms, sample_rate):
         output[i + local_max_index] = window[local_max_index]
 
     return output
+
+#%%
