@@ -15,16 +15,14 @@ def apply_filter(data_buffer, coefficients):
     return filtered_data
 
 
-def max_difference(data, n):
-    results = np.zeros_like(data)
-
-    # Compute the maximum difference
-    for i in range(n, len(data) - n):
-        left_max_diff = np.max(np.abs(data[i] - data[i - n:i]))
-        right_max_diff = np.max(np.abs(data[i] - data[i + 1:i + n + 1]))
-        results[i] = (left_max_diff + right_max_diff) / 2
-
-    return results
+def mean_difference(arr, N):
+    mean_diffs = [0]*N
+    for i in range(N, len(arr)-N):
+        left_mean_diff = np.mean([arr[i] - arr[i-k] for k in range(1, N+1)])
+        right_mean_diff = np.mean([arr[i] - arr[i+k] for k in range(1, N+1)])
+        mean_diffs.append((left_mean_diff + right_mean_diff) / 2)
+    mean_diffs.extend([0]*N)
+    return mean_diffs
 
 
 def detect_outliers(data, c):
@@ -50,16 +48,15 @@ def post_processing(signal, window_length_ms, sample_rate):
     output = np.zeros_like(signal)
 
     # Slide window across signal
-    for i in range(0, len(signal), window_length_samples):
-        # Select window
-        window = signal[i:i + window_length_samples]
+    i = 0
+    while i < len(signal):
 
-        # Find local maximum
-        local_max_index = np.argmax(window)
-
-        # Only keep the maximum sample within the window
-        output[i + local_max_index] = window[local_max_index]
-
+        if signal[i] == 1:
+            output[i] = 1
+            i += window_length_samples
+        else:
+            output[i] = 0
+            i += 1
     return output
 
-#%%
+# %%
