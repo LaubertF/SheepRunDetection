@@ -1,5 +1,6 @@
 function [data] = gatherData(device)
     data = zeros(1,524288);%145/tickrate hodin
+    
     n = 1;
     ButtonHandle = uicontrol('Style', 'PushButton', ...
                              'String', 'Stop loop', ...
