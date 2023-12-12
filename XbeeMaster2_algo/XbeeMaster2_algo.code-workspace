@@ -2,6 +2,14 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"name": "Pedometer",
+			"path": "../../../../../Documents/PlatformIO/Projects/Pedometer"
+		},
+		{
+			"name": "test",
+			"path": "../../../../../Documents/PlatformIO/Projects/test"
 		}
 	],
 	"settings": {

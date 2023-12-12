@@ -5,6 +5,8 @@
 #include "sdCircularBuffer.h"
 #include "XbeeMaster.h"
 #include "utils.h"
+#include "LinkedList.h"
+#include "pedometer.h"
 
 //piny je potrebne znacit podla "MegaCore Arduino Mega" --> https://github.com/MCUdude/MegaCore#pinout
 #define PIN_SHTWD_SDCARD 48 //(novy dizajn PL1=48, stary dizajn PA2=25)
@@ -41,12 +43,16 @@ volatile LOG sampleloop[1];
 volatile SD_CIRCULAR_BUF_T sdbuff[1];
 volatile TWIState twistat;
 
+
 //Xbee
 XbeeMaster xbeeM(57600); //MAX = 115200
 uint8_t slave1Addr64[] = {0x00, 0x13, 0xA2, 0x00, 0x41, 0x07, 0xC3, 0x09};  //slave 64-bit address (destination)
 uint8_t slave1Addr16[] = {0xFF, 0xFE};  //broadcast all Xbee slave
 uint8_t xbeebuff[XBEE_TX_BUFFER];
 Packet packet;
+
+//Pedometer
+Pedometer pedometer;
 
 // HLAVICKY MOJICH FUNKCII
 void rtcInterrupt();
@@ -167,7 +173,29 @@ void loop() {
       sd_circular_buf_put2(sdbuff, sample);
     }
   }
+  int16_t accXint = ((int16_t)sampleloop[0].accx[0] << 8 | sampleloop[0].accx[1]);
+  int16_t accYint = ((int16_t)sampleloop[0].accy[0] << 8 | sampleloop[0].accy[1]);
+  int16_t accZint = ((int16_t)sampleloop[0].accz[0] << 8 | sampleloop[0].accz[1]);
+  double x = (double)accXint / 4096;
+  double y = (double)accYint / 4096;
+  double z = (double)accZint / 4096;
+  // Serial.print("accXint=");
+  // Serial.println(x);
+  //Serial.print(x * x + y * y + z * z);
+  double accMagnitude = sqrt(x * x + y * y + z * z);
+  //Serial.print("accMagnitude=");
+  // Serial.print("Variable_1:");
+  // Serial.println(accMagnitude);
+  //put magnitude to magnitude buffer
 
+  
+  bool result = pedometer.addInput(accMagnitude);
+  //Serial.print("result=");
+  // Serial.print("Variable_2:");
+  // Serial.println(result);
+    if (result == true) {
+        Serial.println("Step detected");
+    }
   if(sd_circular_buf_empty(sdbuff) == false){ //obsluha = 1.84ms (max)
     digitalWrite(PIN_CS_GPS, HIGH); //kanal D
     sd_circular_buf_get(sdbuff, sampleloop);
@@ -184,8 +212,8 @@ void loop() {
       xbeebuff[10] = sampleloop[0].accz[0];
       xbeebuff[11] = sampleloop[0].accz[1];
 
-      xbeebuff[12] = sampleloop[0].gx[0];
-      xbeebuff[13] = sampleloop[0].gx[1];
+      xbeebuff[12] = result;
+      xbeebuff[13] = 0;
       xbeebuff[14] = sampleloop[0].gy[0];
       xbeebuff[15] = sampleloop[0].gy[1];
       xbeebuff[16] = sampleloop[0].gz[0];
@@ -211,8 +239,8 @@ void loop() {
       xbeebuff[6] = sampleloop[0].accz[0];
       xbeebuff[7] = sampleloop[0].accz[1];
 
-      xbeebuff[8] = sampleloop[0].gx[0];
-      xbeebuff[9] = sampleloop[0].gx[1];
+      xbeebuff[8] = result;
+      xbeebuff[9] = 0;
       xbeebuff[10] = sampleloop[0].gy[0];
       xbeebuff[11] = sampleloop[0].gy[1];
       xbeebuff[12] = sampleloop[0].gz[0];
@@ -227,24 +255,24 @@ void loop() {
       xbeeM.buildTransmitRequest(0x00, slave1Addr64, slave1Addr16, 0x03, 0xC0, xbeebuff, lenXbeePayload);
     } 
     xbeeM.transmitPacket();
-    /*
-    Serial.print(sampleloop[0].timestamp, DEC);
-    Serial.print(" ");
-    Serial.print(sampleloop[0].num_sample_persec, DEC);
-    Serial.print(",");
-    Serial.print(sampleloop[0].accx[0], HEX);
-    Serial.print(",");
-    Serial.print(sampleloop[0].accx[1], HEX);
-    Serial.print(",");
-    Serial.print(sampleloop[0].accy[0], HEX);
-    Serial.print(",");
-    Serial.print(sampleloop[0].accy[1], HEX);
-    Serial.print(",");
-    Serial.print(sampleloop[0].accz[0], HEX);
-    Serial.print(",");
-    Serial.print(sampleloop[0].accz[1], HEX);
-    Serial.println();
-    */
+    
+    // Serial.print(sampleloop[0].timestamp, DEC);
+    // Serial.print(" ");
+    // Serial.print(sampleloop[0].num_sample_persec, DEC);
+    // Serial.print(",");
+    // Serial.print(sampleloop[0].accx[0], DEC);
+    // Serial.print(",");
+    // Serial.print(sampleloop[0].accx[1], DEC);
+    // Serial.print(",");
+    // Serial.print(sampleloop[0].accy[0], DEC);
+    // Serial.print(",");
+    // Serial.print(sampleloop[0].accy[1], DEC);
+    // Serial.print(",");
+    // Serial.print(sampleloop[0].accz[0], DEC);
+    // Serial.print(",");
+    // Serial.print(sampleloop[0].accz[1], DEC);
+    // Serial.println();
+    
     digitalWrite(PIN_CS_GPS, LOW); //kanal D
   }
   //nemam ziaden packet v buffery (nudim sa...)
@@ -301,3 +329,4 @@ void rtcInterrupt(){
   //digitalWrite(PIN_ON_OFF_GPS, LOW); //kanal C
   interrupts();
 }
+
