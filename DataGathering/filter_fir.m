@@ -1,7 +1,7 @@
 %clear all
 %load('data_test2.mat');
 n=8;
-fs=1/13e-3; % 76Hz
+fs=15; % 76Hz
 f=fs/2;
 wn=3/f;
 b=fir1(n,wn,'low');

@@ -9,9 +9,11 @@ def apply_filter(data_buffer, coefficients):
     # Create an array to hold the filtered data
     filtered_data = np.zeros_like(data_buffer)
 
+
     # Apply the filter
     for i in range(len(coefficients), len(data_buffer)):
         filtered_data[i] = np.dot(data_buffer[i - len(coefficients):i], coefficients[::-1])
+    filtered_data[0] = 1
     return filtered_data
 
 
@@ -34,22 +36,18 @@ def maximum_difference(arr, N):
     max_diffs.extend([0] * N)
     return max_diffs
 
+
 def modified_pan_tompkins_scoring(arr, N):
-    max_diffs = [0] * N
-    for i in range(N, len(arr) - N):
-        # Zero-mean the data
-        zero_meaned_data = arr[i - N:i + N] - np.mean(arr[i - N:i + N])
+    # Zero-mean the entire data
+    N *= 2
+    zero_meaned_data = np.zeros_like(arr)
+    for i in range(N, len(arr)):
+        window = arr[i - N:i]
+        diff = arr[i] - np.mean(window)
         # Set negative data points to zero
-        zero_meaned_data[zero_meaned_data < 0] = 0
-        # Square the samples
-        squared_data = zero_meaned_data ** 2
-        # Calculate left and right maximum differences
-        left_max_diff = np.max(squared_data[:N])
-        right_max_diff = np.max(squared_data[N:])
-        # Average the maximum differences
-        max_diffs.append((left_max_diff + right_max_diff) / 2)
-    max_diffs.extend([0] * N)
-    return max_diffs
+        if diff > 0:
+            zero_meaned_data[i] = diff * diff
+    return zero_meaned_data
 
 
 def detect_outliers(data, c):
