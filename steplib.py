@@ -46,7 +46,7 @@ def modified_pan_tompkins_scoring(arr, N):
         diff = arr[i] - np.mean(window)
         # Set negative data points to zero
         if diff > 0:
-            zero_meaned_data[i] = diff * diff
+            zero_meaned_data[i] = (diff * diff) + 1
     return zero_meaned_data
 
 
@@ -69,7 +69,7 @@ def post_processing(signal, window_length_ms, sample_rate):
     # Convert window length from ms to samples
     window_length_samples = int(window_length_ms * sample_rate / 1000)
 
-    # Initialize output
+    # Initialize output 333 5
     output = np.zeros_like(signal)
 
     # Slide window across signal
