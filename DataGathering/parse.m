@@ -13,8 +13,8 @@ lenK=0;
 spajanie = 0;
 packet{1}=[];
 dindx=diff(indx);
-while (i ~= length(indx))
-   while(1)
+while (i < length(indx) & i < length(dindx))
+   while(i < length(dindx))
       lenK = lenK + dindx(i);   %kumulativny pocet znakov spravy(sprav)
       %ak nespajam rozdelene packety, tak neaktualizujem lenOcakavana
       if(spajanie == 0)
@@ -42,7 +42,7 @@ while (i ~= length(indx))
          spajanie = 1;
       end
    end
-end
+ end
 
 %% packet to payload
 for i = 1:length(packet)
