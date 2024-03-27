@@ -10,6 +10,7 @@ sendTimestamp(device)
 getter(true);
 drawnow
 data = gatherData(device);
+save('test.mat','data');
 device = [];
 abs_time_of_clicks = getter();
 dt = datetime(abs_time_of_clicks, 'ConvertFrom', 'datenum');

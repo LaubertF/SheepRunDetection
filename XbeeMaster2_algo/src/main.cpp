@@ -52,7 +52,9 @@ uint8_t xbeebuff[XBEE_TX_BUFFER];
 Packet packet;
 
 //Pedometer
-Pedometer pedometer;
+Pedometer pedometer1 = Pedometer(MEAN_DIFFERENCE);
+Pedometer pedometer2 = Pedometer(PANTOMKINS);
+Pedometer pedometer3 = Pedometer(MAX_DIFFERENCE);
 
 // HLAVICKY MOJICH FUNKCII
 void rtcInterrupt();
@@ -189,13 +191,16 @@ void loop() {
   //put magnitude to magnitude buffer
 
   
-  bool result = pedometer.addInput(accMagnitude);
+  bool result = pedometer1.addInput(accMagnitude);
   //Serial.print("result=");
-  // Serial.print("Variable_2:");
   // Serial.println(result);
     if (result == true) {
-        Serial.println("Step detected");
+      Serial.println("Step detected(MEAN_DIFFERENCE)");
     }
+  // bool result3 = pedometer3.addInput(accMagnitude);
+  //   if (result3 == true) {
+  //     Serial.println("Step detected(MAX_DIFFERENCE)");
+  //   }
   if(sd_circular_buf_empty(sdbuff) == false){ //obsluha = 1.84ms (max)
     digitalWrite(PIN_CS_GPS, HIGH); //kanal D
     sd_circular_buf_get(sdbuff, sampleloop);

@@ -13,7 +13,6 @@ function [data] = gatherData(device)
         end  
         drawnow()
        if (device.NumBytesAvailable > 0)
-          %disp("!!!!!!");
           data(n) = read(device, 1, 'uint8');
           n = n+1;
        end
