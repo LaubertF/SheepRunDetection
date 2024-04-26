@@ -1,9 +1,6 @@
 import cv2
-import numpy as np
-import matplotlib.pyplot as plt
 import datetime
 import frameTimestamp
-from enum import Enum
 import csv
 
 

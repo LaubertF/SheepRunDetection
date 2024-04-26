@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 # enum
 
 
@@ -58,18 +59,33 @@ def post_processing(signal, window_length_ms, sample_rate):
     return output
 
 
-def getSteps(file, window_size=20, threshold=1.15):
-    file_data = pd.read_csv("DataOx\\Hip_100Hz\\" + file)[0:60000]
+def getSteps(file, window_size, threshold, data):
+    file_data = pd.read_csv(file)
     expected = np.where(file_data["annotation"] == 1)[0]
     data1 = file_data["x"] ** 2 + file_data["y"] ** 2 + file_data["z"] ** 2
     accelerometer = data1.apply(lambda x: x ** 0.5)
-    data2 = apply_filter(accelerometer, [0.0167855014066363, 0.0470217363830679, 0.121859539593060, 0.198782647391950,
-                                         0.231101150450572, 0.198782647391950, 0.121859539593060, 0.0470217363830679,
-                                         0.0167855014066363])
-    data1 = modified_pan_tompkins_scoring(data2, window_size)
+    data1 = apply_filter(accelerometer, data.fir)
+    data1 = maximum_difference(data1, window_size)
     data1 = detect_outliers(data1, threshold)
-    data1 = post_processing(data1, 250, 100)
+    data1 = post_processing(data1, data.post_window, data.sample_rate)
     calculated = np.where(data1 == 1)[0]
+    return calculated, expected , accelerometer
 
-    return calculated, expected, data2
+def chart(data_in):
+    (calculated, expected, accelerometer) = data_in
+    x=range(len(accelerometer))
+    y=accelerometer
+    plt.figure(figsize=(10,5))
+    plt.plot(x,y, color='red', marker='o')
+    plt.xlabel('index')
+    plt.ylabel('magnitude')
+    #show x label every 800
+    #add rectangles
+    for e in expected:
+        plt.axvline(x =e, color ='g', label ='axvline - full height', ymin=0.5, alpha=0.8)
+    for c in calculated:
+        plt.axvline(x =c, color ='b', label ='axvline - full height', ymax=0.5, alpha=0.8)
+
+
+    plt.show()
 # %%
